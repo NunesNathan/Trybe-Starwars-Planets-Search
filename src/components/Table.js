@@ -35,13 +35,14 @@ export default function Table() {
       <tbody>
         {
           filteredPlanets && filteredPlanets.map((eachPlanet, i) => (
-            <tr key={i}>
+            <tr key={ i }>
               {(Object.entries(eachPlanet)).map((eachInfo) => (
                 (eachInfo[0] !== 'residents'
-                  ? <td key={`${eachInfo[0]}-${i}`}>{eachInfo[1]}</td>
+                  ? <td key={ `${eachInfo[0]}-${i}` }>{eachInfo[1]}</td>
                   : null)
               ))}
-            </tr>))}
+            </tr>))
+        }
       </tbody>
     </table>
   );
