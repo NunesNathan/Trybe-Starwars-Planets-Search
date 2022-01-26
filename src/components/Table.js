@@ -1,27 +1,53 @@
 import React, { useContext, useEffect, useState } from 'react';
 import PlanetsContext from '../context/PlanetsContext';
+import filterHelper from '../helpers/easier';
 
 export default function Table() {
-  const { data: { results }, filterByName: { name } } = useContext(PlanetsContext);
+  const { data: { results },
+    filterByName: { name },
+    filterByNumericValues } = useContext(PlanetsContext);
+  const [oldName, setOldName] = useState('');
   const [filteredPlanets, filterPlanets] = useState(results);
+  const [filteredPlanetsInitial, filterPlanetsInitial] = useState();
 
-  useEffect(() => {
-    filterPlanets(results);
-  }, [results]);
+  function changePlanetsWithInput() {
+    const filterWithName = (whoToFilter) => (whoToFilter
+      .filter(({ name: planetName }) => planetName
+        .toLowerCase().includes(name.toLowerCase())));
 
-  function changePlanets() {
     if (results) {
-      const passOnFilter = () => (results
-        .filter(({ name: planetName }) => planetName
-          .toLowerCase().includes(name.toLowerCase())));
-
-      filterPlanets(passOnFilter);
+      if (name.length < oldName.length) {
+        setOldName(name);
+        return filterWithName(filteredPlanetsInitial);
+      }
+      setOldName(name);
+      return filterWithName(filteredPlanets);
     }
   }
 
+  const changePlanetsWithColumnFilter = () => {
+    const filterWithNumericsValues = () => filterByNumericValues.map((eachFilter) => (
+      filterHelper(eachFilter, filteredPlanets)));
+
+    if (filterByNumericValues.length > 0) {
+      return filterWithNumericsValues()[filterWithNumericsValues().length - 1];
+    }
+    return filteredPlanets;
+  };
+
   useEffect(() => {
-    changePlanets();
+    filterPlanets(results);
+    filterPlanetsInitial(changePlanetsWithColumnFilter());
+  }, [results]);
+
+  useEffect(() => {
+    filterPlanets(changePlanetsWithInput());
   }, [name]);
+
+  useEffect(() => {
+    filterPlanets(changePlanetsWithColumnFilter());
+    filterPlanetsInitial(changePlanetsWithColumnFilter());
+  }, [filterByNumericValues]);
 
   return (
     <table>
