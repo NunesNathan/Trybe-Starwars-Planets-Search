@@ -15,7 +15,9 @@ function App() {
   const [columnOptions, setColumnOptions] = useState(numericColumnsInitialState);
   const [hasDisabled, setHasDisabled] = useState(false);
 
-  const [data, setData] = useState({});
+  const [hasExclude, setHasExclude] = useState(false);
+
+  const [data, setData] = useState();
   const [columnFilters, setColumnFilters] = useState([]);
   const [sortOrder, setSortOrder] = useState({});
 
@@ -29,7 +31,8 @@ function App() {
 
   useEffect(() => {
     const fetcher = async () => {
-      setData(await (await fetch(url)).json());
+      setData((await (await fetch(url))
+        .json()).results.sort((a, b) => a.name.localeCompare(b.name)));
     };
     fetcher();
   }, []);
@@ -75,18 +78,18 @@ function App() {
     if (columnValue) {
       setColumnFilters(columnFilters.concat(filter));
     }
-    if (columnOptions.length < 1) {
+    if (columnOptions.length <= 1) {
       setHasDisabled(true);
     }
+    setNumericValue(0);
   };
 
   const sortTable = () => {
-    const filter = {
+    setSortOrder({
       column: sortColumnValue,
       sort: sortDirection,
-    };
-
-    setSortOrder(filter);
+    });
+    setSortColumnValue(numericColumnsInitialState[0]);
   };
 
   const removeOptions = () => {
@@ -108,6 +111,8 @@ function App() {
     const { id } = target.parentNode;
     setColumnOptions(columnOptions.concat(id));
     setColumnFilters(columnFilters.filter((eachFilter) => eachFilter.column !== id));
+    setHasDisabled(false);
+    setHasExclude(true);
   };
 
   return (
@@ -117,6 +122,7 @@ function App() {
         filterByName: { name: inputTextSearch },
         filterByNumericValues: columnFilters,
         order: sortOrder,
+        control: { hasExclude, setHasExclude },
       } }
     >
       <Input
@@ -178,7 +184,7 @@ function App() {
           changeValue={ changeInputFilter }
         />
         <Button
-          text="Filtrar"
+          text="Organizar"
           test="column-sort-button"
           onClick={ sortTable }
         />
@@ -199,7 +205,7 @@ function App() {
             />
           </div>
         ))}
-      <Table />
+      <Table order={ sortOrder } />
     </PlanetsContext.Provider>
   );
 }

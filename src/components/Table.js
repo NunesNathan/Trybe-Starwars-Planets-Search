@@ -3,13 +3,18 @@ import PlanetsContext from '../context/PlanetsContext';
 import filterHelper from '../helpers/easier';
 
 export default function Table() {
-  const { data: { results },
+  const last = -1;
+
+  const { data: results,
     filterByName: { name },
     filterByNumericValues,
     order,
+    control: { hasExclude, setHasExclude },
   } = useContext(PlanetsContext);
   const [filteredPlanets, filterPlanets] = useState(results);
   const [filteredPlanetsInitial, filterPlanetsInitial] = useState();
+  const [filteredPlanetsByOrder, filterPlanetsByOrder] = useState();
+  const [filteredPlanetsByNumericFilters, filterPlanetsByNumericFilters] = useState();
 
   function changePlanetsWithInput() {
     const filterWithName = (who) => (
@@ -17,58 +22,56 @@ export default function Table() {
         .filter(({ name: planetName }) => planetName
           .toLowerCase().includes(name.toLowerCase())));
 
-    if (results) {
-      if (name.length > 0) {
-        return filterWithName(filteredPlanets);
-      }
+    if (filteredPlanetsByNumericFilters) {
+      return filterWithName(filteredPlanetsByNumericFilters);
+    }
+    if (filteredPlanetsByOrder) {
+      return filterWithName(filteredPlanetsByOrder);
+    }
+    if (filteredPlanetsInitial) {
       return filterWithName(filteredPlanetsInitial);
     }
   }
 
   const changePlanetsWithColumnFilter = () => {
-    const filterWithNumericsValues = () => filterByNumericValues.map((eachFilter) => (
-      filterHelper(eachFilter, filteredPlanets)));
+    const filterWithNumericsValues = (who) => filterByNumericValues
+      .map((eachFilter) => filterHelper(eachFilter, who));
 
     if (filterByNumericValues.length > 1) {
-      const last = -1;
-      return filterWithNumericsValues().at(last);
+      if (hasExclude) {
+        setHasExclude(false);
+        return filterWithNumericsValues(filteredPlanetsInitial)[0];
+      }
+      return filterWithNumericsValues(filteredPlanetsByNumericFilters).at(last);
     }
-    if (filterByNumericValues.length > 0) {
-      return filterWithNumericsValues()[0];
+    if (filterByNumericValues.length === 1) {
+      return filterWithNumericsValues(filteredPlanetsInitial)[0];
     }
-    return results;
+    return filteredPlanetsInitial;
   };
 
   const sortPlanets = () => {
     if (order.sort) {
       return filteredPlanets.sort((planetToSort, scndPlanet) => {
         if (order.sort === 'ASC') {
+          if (planetToSort[order.column] === 'unknown') {
+            return last;
+          }
           return Number(planetToSort[order.column]) - Number(scndPlanet[order.column]);
         }
-        return Number(scndPlanet[order.column]) - Number(planetToSort[order.column]);
-      }).filter((eachSortedPlanet) => {
-        if (order.column === 'population') {
-          return eachSortedPlanet[order.column] !== 'unknown';
+        if (scndPlanet[order.column] === 'unknown') {
+          return last;
         }
-        return eachSortedPlanet;
+        return Number(scndPlanet[order.column]) - Number(planetToSort[order.column]);
       });
     }
   };
 
-  const verifyStart = () => {
-    if (results) {
-      /* sobre o uso de localeCompare para comparar as strings retornando um valor,
-      tal como o sort espera */
-      return results.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    return results;
+  const startInicialSetup = () => {
+    filterPlanets(results);
+    filterPlanetsInitial(results);
   };
-
-  const startSetup = () => {
-    filterPlanets(verifyStart());
-    filterPlanetsInitial(verifyStart());
-  };
-  useEffect(startSetup, [results]);
+  useEffect(startInicialSetup, [results]);
 
   const filteredByName = () => {
     filterPlanets(changePlanetsWithInput());
@@ -76,14 +79,16 @@ export default function Table() {
   useEffect(filteredByName, [name]);
 
   const getNumericFilters = () => {
-    filterPlanets(changePlanetsWithColumnFilter());
-    filterPlanetsInitial(changePlanetsWithColumnFilter());
+    const result = changePlanetsWithColumnFilter();
+    filterPlanets(result);
+    filterPlanetsByNumericFilters(result);
   };
-
-  useEffect(getNumericFilters, [filterByNumericValues]);
+  useEffect(getNumericFilters, [filterByNumericValues, hasExclude]);
 
   const getOrder = () => {
-    filterPlanets(sortPlanets());
+    const result = sortPlanets();
+    filterPlanets(result);
+    filterPlanetsByOrder(result);
   };
   useEffect(getOrder, [order]);
 
