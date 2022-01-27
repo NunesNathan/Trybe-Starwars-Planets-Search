@@ -5,7 +5,9 @@ import filterHelper from '../helpers/easier';
 export default function Table() {
   const { data: { results },
     filterByName: { name },
-    filterByNumericValues } = useContext(PlanetsContext);
+    filterByNumericValues,
+    order,
+  } = useContext(PlanetsContext);
   const [filteredPlanets, filterPlanets] = useState(results);
   const [filteredPlanetsInitial, filterPlanetsInitial] = useState();
 
@@ -37,9 +39,34 @@ export default function Table() {
     return results;
   };
 
+  const sortPlanets = () => {
+    if (order.sort) {
+      return filteredPlanets.sort((planetToSort, scndPlanet) => {
+        if (order.sort === 'ASC') {
+          return Number(planetToSort[order.column]) - Number(scndPlanet[order.column]);
+        }
+        return Number(scndPlanet[order.column]) - Number(planetToSort[order.column]);
+      }).filter((eachSortedPlanet) => {
+        if (order.column === 'population') {
+          return eachSortedPlanet[order.column] !== 'unknown';
+        }
+        return eachSortedPlanet;
+      });
+    }
+  };
+
+  const verifyStart = () => {
+    if (results) {
+      /* sobre o uso de localeCompare para comparar as strings retornando um valor,
+      tal como o sort espera */
+      return results.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return results;
+  };
+
   useEffect(() => {
-    filterPlanets(results);
-    filterPlanetsInitial(results);
+    filterPlanets(verifyStart());
+    filterPlanetsInitial(verifyStart());
   }, [results]);
 
   useEffect(() => {
@@ -50,6 +77,10 @@ export default function Table() {
     filterPlanets(changePlanetsWithColumnFilter());
     filterPlanetsInitial(changePlanetsWithColumnFilter());
   }, [filterByNumericValues]);
+
+  useEffect(() => {
+    filterPlanets(sortPlanets());
+  }, [order]);
 
   return (
     <table>
@@ -64,11 +95,23 @@ export default function Table() {
         {
           filteredPlanets && filteredPlanets.map((eachPlanet, i) => (
             <tr key={ i }>
-              {(Object.entries(eachPlanet)).map((eachInfo) => (
-                (eachInfo[0] !== 'residents'
-                  ? <td key={ `${eachInfo[0]}-${i}` }>{eachInfo[1]}</td>
-                  : null)
-              ))}
+              {
+                (Object.entries(eachPlanet)).map((eachInfo) => {
+                  if (eachInfo[0] !== 'residents') {
+                    if (eachInfo[0] === 'name') {
+                      return (
+                        <td
+                          data-testid="planet-name"
+                          key={ `${eachInfo[0]}-${i}` }
+                        >
+                          {eachInfo[1]}
+                        </td>);
+                    }
+                    return <td key={ `${eachInfo[0]}-${i}` }>{eachInfo[1]}</td>;
+                  }
+                  return null;
+                })
+              }
             </tr>))
         }
       </tbody>

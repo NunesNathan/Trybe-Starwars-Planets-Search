@@ -9,18 +9,23 @@ import PlanetsContext from './context/PlanetsContext';
 function App() {
   const url = 'https://swapi-trybe.herokuapp.com/api/planets/';
   const comparisonOptions = ['maior que', 'menor que', 'igual a'];
+  const numericColumnsInitialState = ['population', 'orbital_period',
+    'diameter', 'rotation_period', 'surface_water'];
 
-  const [columnOptions, setColumnOptions] = useState(['population', 'orbital_period',
-    'diameter', 'rotation_period', 'surface_water']);
+  const [columnOptions, setColumnOptions] = useState(numericColumnsInitialState);
   const [hasDisabled, setHasDisabled] = useState(false);
 
   const [data, setData] = useState({});
   const [columnFilters, setColumnFilters] = useState([]);
+  const [sortOrder, setSortOrder] = useState({});
 
   const [inputTextSearch, setInputTextSearch] = useState('');
   const [columnValue, setColumnValue] = useState(columnOptions[0]);
   const [comparisonValue, setComparisonValue] = useState(comparisonOptions[0]);
   const [numericValue, setNumericValue] = useState(0);
+
+  const [sortDirection, setSortDirection] = useState('ASC');
+  const [sortColumnValue, setSortColumnValue] = useState(numericColumnsInitialState[0]);
 
   useEffect(() => {
     const fetcher = async () => {
@@ -37,6 +42,9 @@ function App() {
     case 'numericValue':
       setNumericValue(value);
       break;
+    case 'sort-direction':
+      setSortDirection(value);
+      break;
     default:
       break;
     }
@@ -49,6 +57,9 @@ function App() {
       break;
     case 'comparison':
       setComparisonValue(value);
+      break;
+    case 'sort-column':
+      setSortColumnValue(value);
       break;
     default:
       break;
@@ -67,6 +78,15 @@ function App() {
     if (columnOptions.length < 1) {
       setHasDisabled(true);
     }
+  };
+
+  const sortTable = () => {
+    const filter = {
+      column: sortColumnValue,
+      sort: sortDirection,
+    };
+
+    setSortOrder(filter);
   };
 
   useEffect(() => {
@@ -95,6 +115,7 @@ function App() {
         data,
         filterByName: { name: inputTextSearch },
         filterByNumericValues: columnFilters,
+        order: sortOrder,
       } }
     >
       <Input
@@ -133,6 +154,34 @@ function App() {
           onClick={ setNewColumnFilter }
         />
       </form>
+      <form>
+        <Select
+          test="column-sort"
+          options={ numericColumnsInitialState }
+          value={ sortColumnValue }
+          changeValue={ changeSelectFilter }
+          name="sort-column"
+        />
+        <Input
+          id="sort-direction"
+          test="column-sort-input-asc"
+          value="ASC"
+          type="radio"
+          changeValue={ changeInputFilter }
+        />
+        <Input
+          id="sort-direction"
+          test="column-sort-input-desc"
+          value="DESC"
+          type="radio"
+          changeValue={ changeInputFilter }
+        />
+        <Button
+          text="Filtrar"
+          test="column-sort-button"
+          onClick={ sortTable }
+        />
+      </form>
       {columnFilters.length > 0
         && columnFilters.map((eachFilter) => (
           <div
@@ -140,9 +189,9 @@ function App() {
             key={ `filter-list-${eachFilter.column}` }
             id={ eachFilter.column }
           >
-            <p>
+            <span>
               {Object.values(eachFilter).join(' ')}
-            </p>
+            </span>
             <Button
               text="x"
               onClick={ excludeButton }
