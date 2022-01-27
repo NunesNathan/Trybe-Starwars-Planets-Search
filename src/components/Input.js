@@ -20,7 +20,10 @@ export default function Input(props) {
 Input.propTypes = {
   id: PropType.string.isRequired,
   test: PropType.string.isRequired,
-  value: PropType.string.isRequired,
+  value: PropType.oneOfType([
+    PropType.string,
+    PropType.number,
+  ]).isRequired,
   type: PropType.string.isRequired,
   changeValue: PropType.func.isRequired,
 };

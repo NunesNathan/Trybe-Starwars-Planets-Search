@@ -6,22 +6,20 @@ export default function Table() {
   const { data: { results },
     filterByName: { name },
     filterByNumericValues } = useContext(PlanetsContext);
-  const [oldName, setOldName] = useState('');
   const [filteredPlanets, filterPlanets] = useState(results);
   const [filteredPlanetsInitial, filterPlanetsInitial] = useState();
 
   function changePlanetsWithInput() {
-    const filterWithName = (whoToFilter) => (whoToFilter
-      .filter(({ name: planetName }) => planetName
-        .toLowerCase().includes(name.toLowerCase())));
+    const filterWithName = (who) => (
+      who
+        .filter(({ name: planetName }) => planetName
+          .toLowerCase().includes(name.toLowerCase())));
 
     if (results) {
-      if (name.length < oldName.length) {
-        setOldName(name);
-        return filterWithName(filteredPlanetsInitial);
+      if (name.length > 0) {
+        return filterWithName(filteredPlanets);
       }
-      setOldName(name);
-      return filterWithName(filteredPlanets);
+      return filterWithName(filteredPlanetsInitial);
     }
   }
 
@@ -29,15 +27,19 @@ export default function Table() {
     const filterWithNumericsValues = () => filterByNumericValues.map((eachFilter) => (
       filterHelper(eachFilter, filteredPlanets)));
 
-    if (filterByNumericValues.length > 0) {
-      return filterWithNumericsValues()[filterWithNumericsValues().length - 1];
+    if (filterByNumericValues.length > 1) {
+      const last = -1;
+      return filterWithNumericsValues().at(last);
     }
-    return filteredPlanets;
+    if (filterByNumericValues.length > 0) {
+      return filterWithNumericsValues()[0];
+    }
+    return results;
   };
 
   useEffect(() => {
     filterPlanets(results);
-    filterPlanetsInitial(changePlanetsWithColumnFilter());
+    filterPlanetsInitial(results);
   }, [results]);
 
   useEffect(() => {
