@@ -64,23 +64,28 @@ export default function Table() {
     return results;
   };
 
-  useEffect(() => {
+  const startSetup = () => {
     filterPlanets(verifyStart());
     filterPlanetsInitial(verifyStart());
-  }, [results]);
+  };
+  useEffect(startSetup, [results]);
 
-  useEffect(() => {
+  const filteredByName = () => {
     filterPlanets(changePlanetsWithInput());
-  }, [name]);
+  };
+  useEffect(filteredByName, [name]);
 
-  useEffect(() => {
+  const getNumericFilters = () => {
     filterPlanets(changePlanetsWithColumnFilter());
     filterPlanetsInitial(changePlanetsWithColumnFilter());
-  }, [filterByNumericValues]);
+  };
 
-  useEffect(() => {
+  useEffect(getNumericFilters, [filterByNumericValues]);
+
+  const getOrder = () => {
     filterPlanets(sortPlanets());
-  }, [order]);
+  };
+  useEffect(getOrder, [order]);
 
   return (
     <table>

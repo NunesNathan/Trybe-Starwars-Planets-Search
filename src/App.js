@@ -89,7 +89,7 @@ function App() {
     setSortOrder(filter);
   };
 
-  useEffect(() => {
+  const removeOptions = () => {
     if (columnFilters.length > 0) {
       const newOptions = columnFilters.map(({ column }) => (
         columnOptions.filter((eachOption) => eachOption !== column)
@@ -101,7 +101,8 @@ function App() {
       setColumnOptions(newOptions.at(last));
       setColumnValue(newOptions.at(last)[0]);
     }
-  }, [columnFilters]);
+  };
+  useEffect(removeOptions, [columnFilters]);
 
   const excludeButton = ({ target }) => {
     const { id } = target.parentNode;
