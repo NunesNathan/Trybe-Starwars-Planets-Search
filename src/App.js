@@ -12,6 +12,7 @@ function App() {
 
   const [columnOptions, setColumnOptions] = useState(['population', 'orbital_period',
     'diameter', 'rotation_period', 'surface_water']);
+  const [hasDisabled, setHasDisabled] = useState(false);
 
   const [data, setData] = useState({});
   const [columnFilters, setColumnFilters] = useState([]);
@@ -60,7 +61,12 @@ function App() {
       comparison: comparisonValue,
       value: numericValue,
     };
-    setColumnFilters(columnFilters.concat(filter));
+    if (columnValue) {
+      setColumnFilters(columnFilters.concat(filter));
+    }
+    if (columnOptions.length < 1) {
+      setHasDisabled(true);
+    }
   };
 
   useEffect(() => {
@@ -76,6 +82,12 @@ function App() {
       setColumnValue(newOptions.at(last)[0]);
     }
   }, [columnFilters]);
+
+  const excludeButton = ({ target }) => {
+    const { id } = target.parentNode;
+    setColumnOptions(columnOptions.concat(id));
+    setColumnFilters(columnFilters.filter((eachFilter) => eachFilter.column !== id));
+  };
 
   return (
     <PlanetsContext.Provider
@@ -117,9 +129,26 @@ function App() {
         <Button
           text="Filtrar"
           test="button-filter"
+          disabled={ hasDisabled }
           onClick={ setNewColumnFilter }
         />
       </form>
+      {columnFilters.length > 0
+        && columnFilters.map((eachFilter) => (
+          <div
+            data-testid="filter"
+            key={ `filter-list-${eachFilter.column}` }
+            id={ eachFilter.column }
+          >
+            <p>
+              {Object.values(eachFilter).join(' ')}
+            </p>
+            <Button
+              text="x"
+              onClick={ excludeButton }
+            />
+          </div>
+        ))}
       <Table />
     </PlanetsContext.Provider>
   );
