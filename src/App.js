@@ -100,9 +100,11 @@ function App() {
 
       /* at function, parecido com o comportamento de posição em listas
       no python https://stackoverflow.com/questions/3216013/get-the-last-item-in-an-array */
-      const last = -1;
-      setColumnOptions(newOptions.at(last));
-      setColumnValue(newOptions.at(last)[0]);
+      // const last = -1;
+      // setColumnOptions(newOptions.at(last));
+      // setColumnValue(newOptions.at(last)[0]);
+      setColumnOptions((newOptions[newOptions.length - 1]));
+      setColumnValue((newOptions[newOptions.length - 1][0]));
     }
   };
   useEffect(removeOptions, [columnFilters]);

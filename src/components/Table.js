@@ -42,7 +42,9 @@ export default function Table() {
         setHasExclude(false);
         return filterWithNumericsValues(filteredPlanetsInitial)[0];
       }
-      return filterWithNumericsValues(filteredPlanetsByNumericFilters).at(last);
+      // return filterWithNumericsValues(filteredPlanetsByNumericFilters).at(last);
+      const result = filterWithNumericsValues(filteredPlanetsByNumericFilters);
+      return (result[result.length - 1]);
     }
     if (filterByNumericValues.length === 1) {
       return filterWithNumericsValues(filteredPlanetsInitial)[0];
